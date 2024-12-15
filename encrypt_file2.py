@@ -12,6 +12,7 @@ class FileEncryptorApp:
         self.root = root
         self.root.title("File Encryptor/Decryptor")
         
+        # INI WM
         # Generate RSA keys
         self.private_key = RSA.generate(2048)
         self.public_key = self.private_key.publickey()
