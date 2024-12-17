@@ -9,27 +9,30 @@ import re
 class FileEncryptorApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("File Encryptor/Decryptor")
+        self.root.title("Enkripsi/Dekripsi File")
+        self.root.geometry("400x300")
 
         # Generate RSA keys
         self.private_key = RSA.generate(2048)
         self.public_key = self.private_key.publickey()
 
-        # Buttons for each feature
-        self.encrypt_button = tk.Button(root, text="Encrypt File", command=self.encrypt_file)
+        # Labels and buttons
+        tk.Label(root, text="Enkripsi/Dekripsi File", font=("Helvetica", 16)).pack(pady=10)
+
+        self.encrypt_button = tk.Button(root, text="Enkripsi File", width=20, command=self.encrypt_file)
         self.encrypt_button.pack(pady=10)
 
-        self.encrypt_python_button = tk.Button(root, text="Encrypt Python File", command=self.encrypt_python_file)
+        self.encrypt_python_button = tk.Button(root, text="Enkripsi File Python", width=20, command=self.encrypt_python_file)
         self.encrypt_python_button.pack(pady=10)
 
-        self.decrypt_button = tk.Button(root, text="Decrypt File", command=self.decrypt_file)
+        self.decrypt_button = tk.Button(root, text="Dekripsi File", width=20, command=self.decrypt_file)
         self.decrypt_button.pack(pady=10)
 
-        self.decrypt_python_button = tk.Button(root, text="Decrypt Python File", command=self.decrypt_python_file)
+        self.decrypt_python_button = tk.Button(root, text="Dekripsi File Python", width=20, command=self.decrypt_python_file)
         self.decrypt_python_button.pack(pady=10)
 
     def generate_encryption_key(self):
-        return os.urandom(32)  # 256-bit AES key
+        return os.urandom(32)
 
     def encrypt_file(self):
         file_path = filedialog.askopenfilename()
