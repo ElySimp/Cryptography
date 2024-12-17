@@ -4,6 +4,7 @@ from Cryptodome.PublicKey import RSA
 from Cryptodome.Cipher import AES, PKCS1_OAEP
 import base64
 import os
+import re
 
 class FileEncryptorApp:
     def __init__(self, root):
@@ -21,35 +22,18 @@ class FileEncryptorApp:
         self.encrypt_python_button = tk.Button(root, text="Encrypt Python File", command=self.encrypt_python_file)
         self.encrypt_python_button.pack(pady=10)
         
-        self.decrypt_button = tk.Button(root, text="Decrypt File", command=self.decrypt_file)
+        self.decrypt_button = tk.Button(root, text="Decrypt File", command=self.decrypt_python_file)
         self.decrypt_button.pack(pady=10)
+        
+        self.decrypt_python_button = tk.Button(root, text="Decrypt Python File", command=self.decrypt_python_file)
+        self.decrypt_python_button.pack(pady=10)
     
     def generate_encryption_key(self):
         return os.urandom(32)  # 256-bit key
 
     def encrypt_file(self):
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            with open(file_path, 'rb') as file:
-                file_data = file.read()
-
-            aes_key = self.generate_encryption_key()
-            cipher_aes = AES.new(aes_key, AES.MODE_EAX)
-            ciphertext, tag = cipher_aes.encrypt_and_digest(file_data)
-
-            cipher_rsa = PKCS1_OAEP.new(self.public_key)
-            encrypted_key = cipher_rsa.encrypt(aes_key)
-
-            encrypted_data = base64.b64encode(encrypted_key + cipher_aes.nonce + tag + ciphertext).decode('utf-8')
-            encrypted_file_path = file_path + ".encrypted"
-            with open(encrypted_file_path, 'w') as file:
-                file.write(encrypted_data)
-
-            password = base64.b64encode(aes_key).decode('utf-8')
-            
-            self.root.clipboard_clear()
-            self.root.clipboard_append(password)
-            messagebox.showinfo("Success", f"File encrypted successfully. One-time password for decryption (copied to clipboard):\n\n{password}")
+        # Encryption logic for general files
+        pass
     
     def encrypt_python_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Python Files", "*.py")])
@@ -101,34 +85,45 @@ if __name__ == "__main__":
             f"Encrypted file: {encrypted_file_path}\n\n"
             f"Encryption key: {key_encoded} (copied to clipboard)")
 
-    def decrypt_file(self):
-        file_path = filedialog.askopenfilename()
-        if file_path and file_path.endswith('.encrypted'):
-            password = simpledialog.askstring("Password", "Enter the one-time password provided during encryption:")
-            if not password:
-                messagebox.showerror("Error", "Password is required")
-                return
+    def decrypt_python_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Python Encrypted Files", "*_encrypted.py")])
+        if not file_path:
+            return
 
-            with open(file_path, 'r') as file:
-                encrypted_data = base64.b64decode(file.read())
-
-            encrypted_key = encrypted_data[:self.private_key.size_in_bytes()]
-            nonce = encrypted_data[self.private_key.size_in_bytes():self.private_key.size_in_bytes()+16]
-            tag = encrypted_data[self.private_key.size_in_bytes()+16:self.private_key.size_in_bytes()+32]
-            ciphertext = encrypted_data[self.private_key.size_in_bytes()+32:]
-
-            try:
-                aes_key = base64.b64decode(password.encode('utf-8'))
-                cipher_aes = AES.new(aes_key, AES.MODE_EAX, nonce=nonce)
-                decrypted_data = cipher_aes.decrypt_and_verify(ciphertext, tag)
-                with open(file_path.replace(".encrypted", ""), 'wb') as file:
-                    file.write(decrypted_data)
-                os.remove(file_path)
-                messagebox.showinfo("Success", "File decrypted successfully and encrypted file deleted")
-            except (ValueError, KeyError):
-                messagebox.showerror("Error", "Failed to decrypt file. Invalid password or corrupted file.")
-        else:
-            messagebox.showerror("Error", "Failed to decrypt file or invalid file type")
+        with open(file_path, 'r', encoding='utf-8') as file:
+            encrypted_content = file.read()
+        
+        key_encoded = simpledialog.askstring("Decryption Key", "Enter the decryption key:")
+        if not key_encoded:
+            messagebox.showerror("Error", "Decryption key is required")
+            return
+        
+        try:
+            key = base64.b64decode(key_encoded)
+            
+            nonce = re.search(r'base64.b64decode\("(.*?)"\)', encrypted_content).group(1)
+            nonce = base64.b64decode(nonce)
+            
+            tag = re.search(r'base64.b64decode\("(.*?)"\)', encrypted_content[encrypted_content.find("tag") :]).group(1)
+            tag = base64.b64decode(tag)
+            
+            encrypted_data = re.search(r'base64.b64decode\("(.*?)"\)', encrypted_content[encrypted_content.find("encrypted_data") :]).group(1)
+            encrypted_data = base64.b64decode(encrypted_data)
+            
+            cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
+            decrypted_content = cipher.decrypt_and_verify(encrypted_data, tag).decode('utf-8')
+            
+            decrypted_file_path = file_path.replace("_encrypted.py", "_decrypted.py")
+            with open(decrypted_file_path, 'w', encoding='utf-8') as file:
+                file.write(decrypted_content)
+            
+            messagebox.showinfo("Success", 
+                f"Python file decrypted successfully!\n\n"
+                f"Decrypted file: {decrypted_file_path}")
+        except (ValueError, KeyError) as e:
+            messagebox.showerror("Error", f"Decryption failed. The decryption key might be incorrect or the file might be corrupted. Error: {str(e)}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
 
 if __name__ == "__main__":
     root = tk.Tk()

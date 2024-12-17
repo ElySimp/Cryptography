@@ -23,6 +23,9 @@ class FileEncryptorApp:
         
         self.decrypt_button = tk.Button(root, text="Decrypt File", command=self.decrypt_file)
         self.decrypt_button.pack(pady=10)
+        
+        self.decrypt_python_button = tk.Button(root, text="Decrypt Python File", command=self.decrypt_python_file)
+        self.decrypt_python_button.pack(pady=10)
     
     def generate_encryption_key(self):
         return os.urandom(32)  # 256-bit key
@@ -129,6 +132,50 @@ if __name__ == "__main__":
                 messagebox.showerror("Error", "Failed to decrypt file. Invalid password or corrupted file.")
         else:
             messagebox.showerror("Error", "Failed to decrypt file or invalid file type")
+    
+    def decrypt_python_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Python Encrypted Files", "*_encrypted.py")])
+        if not file_path:
+            return
+
+        with open(file_path, 'r', encoding='utf-8') as file:
+            encrypted_content = file.read()
+        
+        key_encoded = simpledialog.askstring("Password", "Enter the decryption key:")
+        if not key_encoded:
+            messagebox.showerror("Error", "Decryption key is required")
+            return
+        
+        try:
+            key = base64.b64decode(key_encoded)
+            
+            start_nonce = encrypted_content.find("base64.b64decode(") + len("base64.b64decode(") + 1
+            end_nonce = encrypted_content.find("\")", start_nonce)
+            nonce_encoded = encrypted_content[start_nonce:end_nonce]
+            nonce = base64.b64decode(nonce_encoded)
+            
+            start_tag = encrypted_content.find("base64.b64decode(", end_nonce) + len("base64.b64decode(") + 1
+            end_tag = encrypted_content.find("\")", start_tag)
+            tag_encoded = encrypted_content[start_tag:end_tag]
+            tag = base64.b64decode(tag_encoded)
+            
+            start_data = encrypted_content.find("base64.b64decode(", end_tag) + len("base64.b64decode(") + 1
+            end_data = encrypted_content.find("\")", start_data)
+            encrypted_data_encoded = encrypted_content[start_data:end_data]
+            encrypted_data = base64.b64decode(encrypted_data_encoded)
+            
+            cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
+            decrypted_content = cipher.decrypt_and_verify(encrypted_data, tag).decode('utf-8')
+            
+            decrypted_file_path = file_path.replace("_encrypted.py", "_decrypted.py")
+            with open(decrypted_file_path, 'w', encoding='utf-8') as file:
+                file.write(decrypted_content)
+            
+            messagebox.showinfo("Success", 
+                f"Python file decrypted successfully!\n\n"
+                f"Decrypted file: {decrypted_file_path}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to decrypt Python file. Error: {str(e)}")
 
 if __name__ == "__main__":
     root = tk.Tk()
