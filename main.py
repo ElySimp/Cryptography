@@ -32,7 +32,7 @@ class FileEncryptorApp:
         self.decrypt_python_button.pack(pady=10)
     
     def generate_encryption_key(self):
-        return os.urandom(32)  # Kunci 256-bit
+        return os.urandom(32)
 
     def encrypt_file(self):
         file_path = filedialog.askopenfilename()
@@ -73,9 +73,8 @@ class FileEncryptorApp:
         with open(file_path, 'r', encoding='utf-8') as file:
             nonce, tag_encoded, encrypted_data = file.read().split('\n')
         
-        # Create a simple dialog for the decryption key with a fixed size
         root = tk.Toplevel()
-        root.geometry("300x150")  # Fixed size for the decryption key dialog
+        root.geometry("300x150")
         root.title("Masukkan Kunci Dekripsi")
         
         tk.Label(root, text="Masukkan Kunci Dekripsi:").pack(pady=10)
@@ -171,9 +170,8 @@ if __name__ == "__main__":
         with open(file_path, 'r', encoding='utf-8') as file:
             encrypted_content = file.read()
         
-        # Buat dialog sederhana untuk memasukkan kunci dekripsi dengan ukuran tetap
         root = tk.Toplevel()
-        root.geometry("300x150")  # Ukuran tetap untuk dialog kunci dekripsi
+        root.geometry("300x150")
         root.title("Masukkan Kunci Dekripsi")
         
         tk.Label(root, text="Masukkan Kunci Dekripsi:").pack(pady=10)
