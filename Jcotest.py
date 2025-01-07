@@ -23,7 +23,7 @@ class FileEncryptorApp:
         self.encrypt_button = tk.Button(root, text="🔒 Encrypt File", width=20, font=(10), command=self.encrypt_file)
         self.encrypt_button.pack(pady=10)
 
-        self.encrypt_python_button = tk.Button(root, text="🔓 Encrypt Python File", width=20, font=(10),  command=self.encrypt_python_file)
+        self.encrypt_python_button = tk.Button(root, text="🔓Encrypt Python File", width=20,  command=self.encrypt_python_file)
         self.encrypt_python_button.pack(pady=10)
 
         self.decrypt_button = tk.Button(root, text="Decrypt File", width=20, command=self.decrypt_file)
