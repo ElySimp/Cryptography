@@ -10,26 +10,26 @@ class FileEncryptorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("File Encryptor/Decryptor")
-        self.root.geometry("450x350")
+        self.root.geometry("500x425")
         self.root.configure(bg="#97c7e0")
 
         # Generate RSA keys
         self.private_key = RSA.generate(2048)
         self.public_key = self.private_key.publickey()
 
-        tk.Label(root, text="Enkripsi/Dekripsi File",width=300, bg="#5AA6CF", font=(16)).pack(pady=(0,20))
+        tk.Label(root, text="Enkripsi/Dekripsi File",width=300, height=2, font=("Montserrat", 24, "bold"), bg="#5AA6CF").pack(pady=(0,25))
 
         # Buttons for each feature
-        self.encrypt_button = tk.Button(root, text="🔒 Encrypt File", width=20, font=(10), command=self.encrypt_file)
+        self.encrypt_button = tk.Button(root, text="🔒 Encrypt File", font=(16), width=25, command=self.encrypt_file)
         self.encrypt_button.pack(pady=10)
 
-        self.encrypt_python_button = tk.Button(root, text="Encrypt Python File", width=20,  command=self.encrypt_python_file)
+        self.encrypt_python_button = tk.Button(root, text="🔒🐍 Encrypt Python File", font=(16), width=25,  command=self.encrypt_python_file)
         self.encrypt_python_button.pack(pady=10)
 
-        self.decrypt_button = tk.Button(root, text="Decrypt File", width=20, command=self.decrypt_file)
+        self.decrypt_button = tk.Button(root, text="🔓 Decrypt File", font=(16), width=25, command=self.decrypt_file)
         self.decrypt_button.pack(pady=10)
 
-        self.decrypt_python_button = tk.Button(root, text="Decrypt Python File", width=20, command=self.decrypt_python_file)
+        self.decrypt_python_button = tk.Button(root, text="🔓🐍 Decrypt Python File", font=(16), width=25, command=self.decrypt_python_file)
         self.decrypt_python_button.pack(pady=10)
 
     def generate_encryption_key(self):
