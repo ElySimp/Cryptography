@@ -13,13 +13,11 @@ class FileEncryptorApp:
         self.root.geometry("500x425")
         self.root.configure(bg="#97c7e0")
 
-        # Generate RSA keys
         self.private_key = RSA.generate(2048)
         self.public_key = self.private_key.publickey()
 
         tk.Label(root, text="Enkripsi/Dekripsi File",width=300, height=2, font=("Montserrat", 24, "bold"), bg="#5AA6CF").pack(pady=(0,25))
 
-        # Buttons for each feature
         self.encrypt_button = tk.Button(root, text="🔒 Encrypt File", font=(16), width=25, command=self.encrypt_file)
         self.encrypt_button.pack(pady=10)
 
@@ -43,18 +41,14 @@ class FileEncryptorApp:
         with open(file_path, 'rb') as file:
             original_content = file.read()
 
-        # Step 1: Generate AES key
         aes_key = self.generate_encryption_key()
         
-        # Step 2: Encrypt file with AES
         cipher = AES.new(aes_key, AES.MODE_EAX)
         encrypted_content, tag = cipher.encrypt_and_digest(original_content)
 
-        # Step 3: Encrypt AES key with RSA public key
         rsa_cipher = PKCS1_OAEP.new(self.public_key)
         encrypted_aes_key = rsa_cipher.encrypt(aes_key)
 
-        # Step 4: Encode everything in base64
         nonce = base64.b64encode(cipher.nonce).decode('utf-8')
         tag_encoded = base64.b64encode(tag).decode('utf-8')
         encrypted_data = base64.b64encode(encrypted_content).decode('utf-8')
@@ -87,17 +81,14 @@ class FileEncryptorApp:
             return
 
         try:
-            # Step 1: Decode AES key using RSA private key
             encrypted_aes_key = base64.b64decode(encrypted_aes_key_encoded)
             rsa_cipher = PKCS1_OAEP.new(self.private_key)
             aes_key = rsa_cipher.decrypt(encrypted_aes_key)
 
-            # Step 2: Decode other data
             nonce = base64.b64decode(nonce)
             tag = base64.b64decode(tag_encoded)
             encrypted_data = base64.b64decode(encrypted_data)
             
-            # Step 3: Decrypt file with AES key
             cipher = AES.new(aes_key, AES.MODE_EAX, nonce=nonce)
             decrypted_content = cipher.decrypt_and_verify(encrypted_data, tag)
             
@@ -121,24 +112,19 @@ class FileEncryptorApp:
         with open(file_path, 'r', encoding='utf-8') as file:
             original_content = file.read()
 
-        # Step 1: Generate AES key
         aes_key = self.generate_encryption_key()
         
-        # Step 2: Encrypt file with AES
         cipher = AES.new(aes_key, AES.MODE_EAX)
         encrypted_content, tag = cipher.encrypt_and_digest(original_content.encode('utf-8'))
 
-        # Step 3: Encrypt AES key with RSA public key
         rsa_cipher = PKCS1_OAEP.new(self.public_key)
         encrypted_aes_key = rsa_cipher.encrypt(aes_key)
 
-        # Step 4: Encode everything in base64
         nonce = base64.b64encode(cipher.nonce).decode('utf-8')
         tag_encoded = base64.b64encode(tag).decode('utf-8')
         encrypted_data = base64.b64encode(encrypted_content).decode('utf-8')
         encrypted_aes_key_encoded = base64.b64encode(encrypted_aes_key).decode('utf-8')
 
-        # Include the private RSA key in the file (for demonstration purposes only; not secure)
         private_key_pem = self.private_key.export_key().decode('utf-8')
 
         decryptor_template = f'''
