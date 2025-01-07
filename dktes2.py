@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog
+from tkinter import ttk
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Cipher import AES, PKCS1_OAEP
 import base64
@@ -17,20 +18,55 @@ class FileEncryptorApp:
         self.private_key = RSA.generate(2048)
         self.public_key = self.private_key.publickey()
 
-        tk.Label(root, text="Enkripsi/Dekripsi File",width=300, bg="#5AA6CF", font=(16)).pack(pady=(0,20))
+        # Title Label
+        title_label = tk.Label(
+            root, text="Enkripsi/Dekripsi File", bg="#5AA6CF", fg="white", 
+            font=("Helvetica", 16, "bold"), pady=10, padx=10
+        )
+        title_label.pack(pady=(0, 20))
 
-        # Buttons for each feature
-        self.encrypt_button = tk.Button(root, text="🔒 Encrypt File", width=20, font=(10), command=self.encrypt_file)
+        # Add a separator for better aesthetics
+        ttk.Separator(root, orient="horizontal").pack(fill="x", pady=10)
+
+        # Buttons with animations
+        self.encrypt_button = self.create_animated_button("🔒 Encrypt File", self.encrypt_file)
+        self.encrypt_python_button = self.create_animated_button("🔓 Encrypt Python File", self.encrypt_python_file)
+        self.decrypt_button = self.create_animated_button("Decrypt File", self.decrypt_file)
+        self.decrypt_python_button = self.create_animated_button("Decrypt Python File", self.decrypt_python_file)
+
+        # Arrange buttons
         self.encrypt_button.pack(pady=10)
-
-        self.encrypt_python_button = tk.Button(root, text="🔓 Encrypt Python File", width=20, font=(10),  command=self.encrypt_python_file)
         self.encrypt_python_button.pack(pady=10)
-
-        self.decrypt_button = tk.Button(root, text="Decrypt File", width=20, command=self.decrypt_file)
         self.decrypt_button.pack(pady=10)
-
-        self.decrypt_python_button = tk.Button(root, text="Decrypt Python File", width=20, command=self.decrypt_python_file)
         self.decrypt_python_button.pack(pady=10)
+
+    def create_animated_button(self, text, command):
+        button = ttk.Button(
+            self.root, text=text, command=lambda: self.animate_button(button, command),
+            style="TButton"
+        )
+        return button
+
+    def animate_button(self, button, command):
+        original_color = "#5AA6CF"
+        hover_color = "#74b9d8"
+
+        def on_enter(e):
+            button.configure(style="Hover.TButton")
+
+        def on_leave(e):
+            button.configure(style="TButton")
+
+        # Apply hover effects
+        self.root.tk.call("ttk::style", "configure", "Hover.TButton", "background", hover_color)
+        self.root.tk.call("ttk::style", "configure", "TButton", "background", original_color)
+
+        button.bind("<Enter>", on_enter)
+        button.bind("<Leave>", on_leave)
+
+        # Simulate animation by disabling the button briefly
+        button.state(["disabled"])
+        self.root.after(100, lambda: (command(), button.state(["!disabled"])))
 
     def generate_encryption_key(self):
         return os.urandom(32)  # 256-bit AES key
@@ -43,18 +79,13 @@ class FileEncryptorApp:
         with open(file_path, 'rb') as file:
             original_content = file.read()
 
-        # Step 1: Generate AES key
         aes_key = self.generate_encryption_key()
-        
-        # Step 2: Encrypt file with AES
         cipher = AES.new(aes_key, AES.MODE_EAX)
         encrypted_content, tag = cipher.encrypt_and_digest(original_content)
 
-        # Step 3: Encrypt AES key with RSA public key
         rsa_cipher = PKCS1_OAEP.new(self.public_key)
         encrypted_aes_key = rsa_cipher.encrypt(aes_key)
 
-        # Step 4: Encode everything in base64
         nonce = base64.b64encode(cipher.nonce).decode('utf-8')
         tag_encoded = base64.b64encode(tag).decode('utf-8')
         encrypted_data = base64.b64encode(encrypted_content).decode('utf-8')
@@ -87,24 +118,21 @@ class FileEncryptorApp:
             return
 
         try:
-            # Step 1: Decode AES key using RSA private key
             encrypted_aes_key = base64.b64decode(encrypted_aes_key_encoded)
             rsa_cipher = PKCS1_OAEP.new(self.private_key)
             aes_key = rsa_cipher.decrypt(encrypted_aes_key)
 
-            # Step 2: Decode other data
             nonce = base64.b64decode(nonce)
             tag = base64.b64decode(tag_encoded)
             encrypted_data = base64.b64decode(encrypted_data)
-            
-            # Step 3: Decrypt file with AES key
+
             cipher = AES.new(aes_key, AES.MODE_EAX, nonce=nonce)
             decrypted_content = cipher.decrypt_and_verify(encrypted_data, tag)
-            
+
             decrypted_file_path = file_path.replace('.enc', '.dec')
             with open(decrypted_file_path, 'wb') as file:
                 file.write(decrypted_content)
-            
+
             messagebox.showinfo("Success", 
                 f"File decrypted successfully!\n\n"
                 f"Decrypted file: {decrypted_file_path}")
@@ -222,6 +250,7 @@ if __name__ == "__main__":
             messagebox.showerror("Error", f"Decryption failed. The decryption key might be incorrect or the file might be corrupted. Error: {str(e)}")
         except Exception as e:
             messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
