@@ -138,29 +138,35 @@ class FileEncryptorApp:
         encrypted_data = base64.b64encode(encrypted_content).decode('utf-8')
         encrypted_aes_key_encoded = base64.b64encode(encrypted_aes_key).decode('utf-8')
 
+        # Include the private RSA key in the file (for demonstration purposes only; not secure)
+        private_key_pem = self.private_key.export_key().decode('utf-8')
+
         decryptor_template = f'''
 import base64
-from Cryptodome.Cipher import AES
+from Cryptodome.Cipher import AES, PKCS1_OAEP
 from Cryptodome.PublicKey import RSA
 
 def decrypt_and_run():
     encrypted_aes_key_encoded = "{encrypted_aes_key_encoded}"
     encrypted_aes_key = base64.b64decode(encrypted_aes_key_encoded)
 
-    # Step 1: Decrypt AES key with RSA private key
-    rsa_private_key = RSA.import_key(open('private_key.pem').read())
-    rsa_cipher = RSA.new(rsa_private_key)
+    # Load RSA private key
+    private_key_pem = \"\"\"{private_key_pem}\"\"\"
+    private_key = RSA.import_key(private_key_pem)
+
+    # Decrypt AES key using RSA private key
+    rsa_cipher = PKCS1_OAEP.new(private_key)
     aes_key = rsa_cipher.decrypt(encrypted_aes_key)
 
+    # Decrypt file content
     nonce = base64.b64decode("{nonce}")
     tag = base64.b64decode("{tag_encoded}")
     encrypted_data = base64.b64decode("{encrypted_data}")
     
-    # Step 2: Decrypt content with AES key
     cipher = AES.new(aes_key, AES.MODE_EAX, nonce=nonce)
     decrypted_content = cipher.decrypt_and_verify(encrypted_data, tag).decode('utf-8')
-    
-    # Step 3: Execute decrypted content
+
+    # Execute the decrypted content
     exec(decrypted_content)
 
 if __name__ == "__main__":
@@ -179,6 +185,7 @@ if __name__ == "__main__":
             f"Original file: {file_path}\n"
             f"Encrypted file: {encrypted_file_path}\n\n"
             f"Encryption key: {encrypted_aes_key_encoded} (copied to clipboard)")
+
 
     def decrypt_python_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Python Encrypted Files", "*_encrypted.py")])
