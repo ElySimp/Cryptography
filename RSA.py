@@ -97,4 +97,3 @@ if n is not None:
     pesan_dekripsi = "".join([chr(num) for num in dekripsi])
     print("Pesan dekripsi:", pesan_dekripsi)
 
-    
