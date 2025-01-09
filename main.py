@@ -45,10 +45,8 @@ def HalamanEnkripsi():
             global NilaiN, NilaiE, NilaiD, Ciphertext
             NilaiN, NilaiE, NilaiD = n, e, d
 
-            Ciphertext = [(ord(char) ** e) % n for char in plaintext]
-
-            # Cetak perhitungan di terminal
-            print("=== Perhitungan RSA ===")
+            Ciphertext = []
+            print("\n=== Perhitungan RSA ===")
             print(f"p = {p}, q = {q}")
             print(f"n = p * q = {n}")
             print(f"phi = (p-1) * (q-1) = {phi}")
@@ -56,8 +54,14 @@ def HalamanEnkripsi():
             print(f"d adalah invers modulo dari e dan phi: d = {d}")
             print(f"Kunci Publik: ({e}, {n})")
             print(f"Kunci Privat: ({d}, {n})")
-            print(f"Ciphertext (hasil enkripsi): {Ciphertext}")
 
+            for char in plaintext:
+                m = ord(char)
+                cipher = (m ** e) % n
+                Ciphertext.append(cipher)
+                print(f"Karakter '{char}' -> ASCII {m} -> (m^e) mod n = ({m}^{e}) mod {n} = {cipher}")
+
+            print(f"Ciphertext (hasil enkripsi): {Ciphertext}")
             HasilEnkripsi.set(f"Ciphertext: {Ciphertext}")
 
         except ValueError as ve:
