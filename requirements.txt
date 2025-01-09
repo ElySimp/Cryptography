@@ -1,2 +1,9 @@
-pycryptodomex
+# Must have
 tkinter
+
+# Enkripsi Files
+pycryptodomex
+# Folder Vico
+flet
+# Main.py
+sympy
