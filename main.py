@@ -45,18 +45,38 @@ def HalamanEnkripsi():
             global NilaiN, NilaiE, NilaiD, Ciphertext
             NilaiN, NilaiE, NilaiD = n, e, d
 
-            Ciphertext = [(ord(char) ** e) % n for char in plaintext]
-
-            print(f"n = {n}, phi = {phi}, e = {e}, d = {d}")
+            Ciphertext = []
+            print("\n=== Perhitungan RSA ===")
+            print(f"p = {p}, q = {q}")
+            print(f"n = p * q = {n}")
+            print(f"phi = (p-1) * (q-1) = {phi}")
+            print(f"e dipilih sebagai bilangan terkecil yang relatif prima dengan phi: e = {e}")
+            print(f"d adalah invers modulo dari e dan phi: d = {d}")
             print(f"Kunci Publik: ({e}, {n})")
             print(f"Kunci Privat: ({d}, {n})")
 
+            for char in plaintext:
+                m = ord(char)
+                cipher = (m ** e) % n
+                Ciphertext.append(cipher)
+                print(f"Karakter '{char}' -> ASCII {m} -> (m^e) mod n = ({m}^{e}) mod {n} = {cipher}")
+
+            print(f"Ciphertext (hasil enkripsi): {Ciphertext}")
             HasilEnkripsi.set(f"Ciphertext: {Ciphertext}")
 
         except ValueError as ve:
             messagebox.showerror("Error", str(ve))
         except Exception as e:
             messagebox.showerror("Error", str(e))
+
+    def SalinCiphertext():
+        if Ciphertext:
+            root.clipboard_clear()
+            root.clipboard_append(str(Ciphertext))
+            root.update()
+            messagebox.showinfo("Salin", "Ciphertext berhasil disalin ke clipboard.")
+        else:
+            messagebox.showwarning("Peringatan", "Tidak ada ciphertext untuk disalin.")
 
     for widget in root.winfo_children():
         widget.destroy()
@@ -79,6 +99,7 @@ def HalamanEnkripsi():
     tk.Button(root, text="Enkripsi", command=ProsesEnkripsi).pack(pady=10)
     tk.Label(root, textvariable=HasilEnkripsi).pack(pady=10)
 
+    tk.Button(root, text="Salin Ciphertext", command=SalinCiphertext).pack(pady=5)
     tk.Button(root, text="Kembali", command=HalamanUtama).pack(pady=10)
 
 # Halaman untuk dekripsi
