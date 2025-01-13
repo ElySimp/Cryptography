@@ -1,15 +1,25 @@
 import tkinter as tk
 from tkinter import messagebox
-from math import gcd
-from sympy import mod_inverse, isprime
 
-# Global variables to share between pages
 NilaiN, NilaiE, NilaiD = None, None, None
 Ciphertext = None
 
-# Fungsi untuk menghitung nilai n, phi, dan kunci publik/privat
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+def mod_inverse(e, phi):
+    e = e % phi
+    for x in range(1, phi):
+        if (e * x) % phi == 1:
+            return x
+    raise ValueError("Tidak ditemukan invers modulo untuk e dan phi.")
+
 def HitungRSA(p, q):
-    if not (isprime(p) and isprime(q)):
+    if p <= 1 or q <= 1:
+        raise ValueError("Nilai p dan q harus bilangan prima lebih dari 1.")
+    if not (is_prima(p) and is_prima(q)):
         raise ValueError("Nilai p dan q harus bilangan prima.")
     if p == q:
         raise ValueError("Nilai p dan q tidak boleh sama.")
@@ -21,10 +31,20 @@ def HitungRSA(p, q):
     while e < phi and gcd(e, phi) != 1:
         e += 1
 
+    if e >= phi:
+        raise ValueError("Tidak ditemukan nilai e yang relatif prima dengan phi.")
+
     d = mod_inverse(e, phi)
     return n, phi, e, d
 
-# Halaman utama untuk memilih enkripsi atau dekripsi
+def is_prima(num):
+    if num <= 1:
+        return False
+    for i in range(2, int(num**0.5) + 1):
+        if num % i == 0:
+            return False
+    return True
+
 def HalamanUtama():
     for widget in root.winfo_children():
         widget.destroy()
@@ -43,6 +63,9 @@ def HalamanEnkripsi():
             q = int(EntryQ.get())
             plaintext = EntryPlaintext.get()
 
+            if p < 7 or q < 7:
+                raise ValueError("Nilai p dan q harus minimal 7.")
+                
             n, phi, e, d = HitungRSA(p, q)
             global NilaiN, NilaiE, NilaiD, Ciphertext
             NilaiN, NilaiE, NilaiD = n, e, d
@@ -59,7 +82,7 @@ def HalamanEnkripsi():
 
             for char in plaintext:
                 m = ord(char)
-                cipher = (m ** e) % n
+                cipher = pow(m, e, n)
                 Ciphertext.append(cipher)
                 print(f"Karakter '{char}' -> ASCII {m} -> (m^e) mod n = ({m}^{e}) mod {n} = {cipher}")
 
