@@ -45,34 +45,65 @@ Kesimpulan:
 
 Enkripsi RSA merupakan salah satu algoritma kriptografi kunci publik yang paling penting dan banyak digunakan saat ini. Keamanannya yang didasarkan pada kesulitan faktorisasi bilangan prima menjadikannya pilihan yang tepat untuk melindungi data sensitif. Meskipun memiliki beberapa kekurangan, RSA tetap menjadi landasan penting dalam pengamanan informasi digital.
 
-Perubahan dan Penjelasan:
-
-    1. Validasi Input Prima: Ditambahkan fungsi is_prime() untuk memastikan input p dan q adalah bilangan prima. Ini sangat penting untuk keamanan RSA. Juga ditambahkan pengecekan apakah p dan q sama.
-    2. Loop untuk Mencari e: Menggunakan while True loop untuk terus mencari e sampai kondisi FPB(e, φ(n)) == 1 terpenuhi. e dimulai dari 2 dan dinaikkan satu per satu.
-    3. Pengamanan Loop e: Ditambahkan if e >= phi: untuk mencegah infinite loop jika ternyata tidak ada nilai e yang memenuhi kondisi (walaupun sangat jarang terjadi untuk bilangan prima yang besar). Ini penting untuk mencegah program hang.
-    4. Fungsi cari_invers_modular(): Implementasi fungsi untuk mencari invers modular d menggunakan Extended Euclidean Algorithm. Ini jauh lebih efisien daripada brute force untuk angka yang besar.
-    5. Penanganan Error: Ditambahkan blok try-except untuk menangani jika user memasukkan input yang bukan angka atau bukan bilangan prima.
-    6. Penggunaan Fungsi ord() dan chr(): Menggunakan fungsi ord() untuk mengubah karakter menjadi representasi numeriknya (ASCII) dan fungsi chr() untuk mengembalikan angka ASCII ke karakter. Ini penting untuk enkripsi teks.
-    7. Pesan numerik, enkripsi, dan dekripsi dalam bentuk list: pesan, enkripsi, dan dekripsi sekarang disimpan dalam bentuk list, agar bisa memproses pesan yang lebih dari satu karakter.
-    8. Contoh penggunaan dan print out yang lebih informatif.
-
 Cara Kerja Pemilihan e Sekarang:
 
 Program sekarang akan mencoba nilai e mulai dari 2. Untuk setiap nilai e, program akan menghitung FPB(e, φ(n)). Jika FPB-nya 1, maka nilai e tersebut valid dan loop berhenti. Jika tidak, e dinaikkan dan proses diulang.
 
-Dengan perbaikan ini, program Anda sekarang seharusnya berfungsi dengan benar untuk enkripsi dan dekripsi teks menggunakan RSA. Pastikan Anda menguji dengan bilangan prima yang relatif kecil terlebih dahulu untuk memverifikasi kebenaran implementasi sebelum menggunakan bilangan prima yang lebih besar untuk keamanan yang sesungguhnya.
+Apa itu Tanda Tangan Digital?
 
-Perubahan dan Penjelasan untuk GUI dengan Flet:
+Tanda tangan digital adalah nilai numerik yang dihasilkan menggunakan algoritma kriptografi, dan memiliki beberapa tujuan utama:
 
-    1. Import flet: Mengimpor library Flet.
-    2. Fungsi main(page: ft.Page): Fungsi utama untuk membangun antarmuka Flet.
-    3. Input Fields: Membuat TextField untuk input p, q, dan pesan.
-    4. Text untuk Output: Membuat Text untuk menampilkan n, kunci publik, kunci privat, pesan terenkripsi, dan pesan dekripsi.
-    5. Tombol Enkripsi: Membuat ElevatedButton untuk memicu proses enkripsi.
-    6. Fungsi enkripsi_klik(e): Fungsi yang dipanggil saat tombol enkripsi diklik. Fungsi ini mengambil nilai dari input fields, memanggil fungsi enkripsi_rsa(), melakukan enkripsi dan dekripsi, dan menampilkan hasilnya di Text fields.
-    7. Pemilihan e secara acak: Untuk menghindari selalu memilih e yang sama, sekarang e dipilih secara acak antara 2 dan phi-1. Ini masih memastikan bahwa e berada dalam rentang yang valid. Loop while masih ada untuk memastikan FPB(e, phi) = 1.
-    8. Penanganan Error dan Feedback ke User: Pesan error dan hasil perhitungan ditampilkan pada UI agar user mendapat feedback.
-    9. Penggunaan ft.Column dan ft.Row: Digunakan untuk mengatur layout elemen-elemen GUI.
+Autentikasi: Memastikan identitas pengirim pesan.
+
+Integritas: Memastikan bahwa pesan tidak diubah sejak ditandatangani.
+
+Non-repudiation: Mencegah pengirim menyangkal bahwa mereka telah mengirim pesan.
+
+Esensi utama dari algoritma RSA adalah bahwa dekripsi dilakukan menggunakan kunci privat (𝑑 , 𝑛) saja. Kunci publik (𝑒 , 𝑛) digunakan untuk enkripsi, dan kunci privat (𝑑 , 𝑛) digunakan untuk dekripsi.
+
+Namun, kunci publik (𝑒,𝑛) juga dapat digunakan untuk tujuan lain, seperti verifikasi tanda tangan digital. Mari kita jelaskan lebih lanjut:
+
+Proses Enkripsi dan Dekripsi RSA
+Enkripsi:
+
+Menggunakan kunci publik (𝑒,𝑛):
+
+𝐶 = 𝑀^e mod 𝑛
+
+Di mana 𝑀 adalah plaintext (dalam bentuk numerik) dan 𝐶 adalah ciphertext yang dihasilkan.
+
+Dekripsi:
+
+Menggunakan kunci privat (𝑑 , 𝑛):
+
+𝑀 = 𝐶^d mod 𝑛
+Di mana 𝐶 adalah ciphertext dan 𝑀 adalah plaintext yang didekripsi.
+
+Tanda Tangan Digital dengan RSA
+RSA juga digunakan untuk tanda tangan digital, di mana kunci publik digunakan untuk verifikasi. Langkah-langkahnya adalah sebagai berikut:
+
+Membuat Tanda Tangan Digital:
+
+Pengirim menggunakan kunci privat (𝑑,𝑛) untuk membuat tanda tangan digital dari pesan atau hash pesan:
+
+𝑆 =𝐻(𝑀)𝑑 mod 𝑛
+
+Di mana 𝐻(𝑀) adalah hash dari pesan 𝑀 , dan 𝑆 adalah tanda tangan digital.
+
+Verifikasi Tanda Tangan Digital:
+
+Penerima menggunakan kunci publik (𝑒,𝑛) untuk memverifikasi tanda tangan digital:
+
+𝐻(𝑀)= 𝑆^e mod 𝑛
+Jika hasilnya sama dengan hash asli dari pesan, maka tanda tangan digital valid, menunjukkan bahwa pesan belum diubah dan memang berasal dari pengirim yang sah.
+
+Inti RSA
+Dekripsi: Menggunakan kunci privat (𝑑,𝑛) untuk mendapatkan kembali plaintext dari ciphertext.
+
+Enkripsi: Menggunakan kunci publik (𝑒,𝑛) untuk mengenkripsi plaintext menjadi ciphertext.
+
+Verifikasi Tanda Tangan: Menggunakan kunci publik (𝑒,𝑛)untuk memverifikasi tanda tangan digital.
+
 
 Cara Menjalankan:
 
